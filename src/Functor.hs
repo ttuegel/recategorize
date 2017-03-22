@@ -27,8 +27,10 @@ along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeInType #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Functor where
 
@@ -38,6 +40,9 @@ class (Category (Cod f), Category (Dom f)) => Functor (f :: j -> k) where
   type Dom f :: Cat j
   type Cod f :: Cat k
   map :: Dom f a b -> Cod f (f a) (f b)
+
+functor :: forall f a. Functor f => Obj (Dom f) a :- Obj (Cod f) (f a)
+functor = imply (\r -> given (source (map (id :: Dom f a a) :: Cod f (f a) (f a))) r)
 
 class (Functor f, Dom f ~ p, Cod f ~ q) => FunctorOf (p :: Cat j) (q :: Cat k) (f :: j -> k)
 instance (Functor f, Dom f ~ p, Cod f ~ q) => FunctorOf p q f
