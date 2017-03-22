@@ -20,27 +20,33 @@ along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 -}
 
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeInType #-}
 {-# LANGUAGE TypeOperators #-}
 
 module Category
-  ( Category(..)
+  ( Category(..), Cat
   , (:-), imply, given
   , Vacuous
   ) where
 
-import GHC.Exts
+import Data.Kind
 
 newtype (:-) (a :: Constraint) (b :: Constraint) = Imply { given :: forall r. (b => r) -> (a => r) }
 
+imply :: (forall r. (b => r) -> (a => r)) -> (a :- b)
 imply = Imply
 
-class Category (cat :: k -> k -> *) where
+type Cat k = k -> k -> *
+
+class Category (cat :: Cat k) where
   type Obj cat :: k -> Constraint
   source :: cat a b -> (() :- Obj cat a)
   target :: cat a b -> (() :- Obj cat b)
