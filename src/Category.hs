@@ -28,13 +28,17 @@ along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Category where
+module Category
+  ( Category(..)
+  , (:-), imply, given
+  , Vacuous
+  ) where
 
 import GHC.Exts
 
-newtype Dict (a :: Constraint) = Dict { given :: forall r. (a => r) -> r }
+newtype (:-) (a :: Constraint) (b :: Constraint) = Imply { given :: forall r. (b => r) -> (a => r) }
 
-newtype (:-) (a :: Constraint) (b :: Constraint) = Implied { implied :: Dict a -> Dict b }
+imply = Imply
 
 class Category (cat :: k -> k -> *) where
   type Obj cat :: k -> Constraint
@@ -53,13 +57,13 @@ instance Vacuous a
 instance Category (->) where
   type Obj (->) = Vacuous
   id = \a -> a
-  source _ = Implied (\_ -> Dict (\r -> r))
-  target _ = Implied (\_ -> Dict (\r -> r))
+  source _ = imply (\r -> r)
+  target _ = imply (\r -> r)
   (>>>) f g = \x -> g (f x)
 
 instance Category (:-) where
   type Obj (:-) = Vacuous
-  id = Implied (\a -> a)
-  source _ = Implied (\_ -> Dict (\r -> r))
-  target _ = Implied (\_ -> Dict (\r -> r))
-  (>>>) f g = Implied (implied f >>> implied g)
+  id = imply (\a -> a)
+  source _ = imply (\r -> r)
+  target _ = imply (\r -> r)
+  (>>>) f g = imply (\c -> given f (given g c))
