@@ -50,10 +50,13 @@ class Category (cat :: Cat k) where
   type Obj cat :: k -> Constraint
   source :: cat a b -> (() :- Obj cat a)
   target :: cat a b -> (() :- Obj cat b)
+  arrow :: cat a b -> (() :- (Obj cat a, Obj cat b))
   id :: Obj cat a => cat a a
   (>>>) :: cat a b -> cat b c -> cat a c
   (<<<) :: cat b c -> cat a b -> cat a c
 
+  source a = given (arrow a) (imply (\r -> r))
+  target a = given (arrow a) (imply (\r -> r))
   (>>>) f g = (<<<) g f
   (<<<) g f = (>>>) f g
 
@@ -63,13 +66,11 @@ instance Vacuous a
 instance Category (->) where
   type Obj (->) = Vacuous
   id = \a -> a
-  source _ = imply (\r -> r)
-  target _ = imply (\r -> r)
+  arrow _ = imply (\r -> r)
   (>>>) f g = \x -> g (f x)
 
 instance Category (:-) where
   type Obj (:-) = Vacuous
   id = imply (\a -> a)
-  source _ = imply (\r -> r)
-  target _ = imply (\r -> r)
+  arrow _ = imply (\r -> r)
   (>>>) f g = imply (\c -> given f (given g c))
