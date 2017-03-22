@@ -31,6 +31,7 @@ along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Functor where
 
@@ -59,3 +60,12 @@ instance Category (Nat p q) where
               (given (target g)
                (given (target f)
                 (Nat (transform f >>> transform g))))
+
+type family NatDom (p :: Cat (i -> j)) :: Cat i where
+  NatDom (Nat p q) = p
+
+type family NatCod (p :: Cat (i -> j)) :: Cat j where
+  NatCod (Nat p q) = q
+
+class (p ~ Nat (NatDom p) (NatCod p), Category (NatDom p), Category (NatCod p)) => Natural (p :: Cat (i -> j))
+instance (p ~ Nat (NatDom p) (NatCod p), Category (NatDom p), Category (NatCod p)) => Natural (p :: Cat (i -> j))
