@@ -69,3 +69,23 @@ type family NatCod (p :: Cat (i -> j)) :: Cat j where
 
 class (p ~ Nat (NatDom p) (NatCod p), Category (NatDom p), Category (NatCod p)) => Natural (p :: Cat (i -> j))
 instance (p ~ Nat (NatDom p) (NatCod p), Category (NatDom p), Category (NatCod p)) => Natural (p :: Cat (i -> j))
+
+class (Functor p, Natural (Cod p)) => Bifunctor (p :: i -> j -> k)
+instance (Functor p, Natural (Cod p)) => Bifunctor (p :: i -> j -> k)
+
+lmap :: forall p a b c. (Bifunctor p, Obj (NatDom (Cod p)) c) => Dom p a b -> NatCod (Cod p) (p a c) (p b c)
+lmap f =
+  (given (source f)
+   (given (functor :: Obj (Dom p) a :- Obj (Cod p) (p a))
+    (transform (map f))))
+
+rmap :: forall p a b c. (Bifunctor p, Obj (Dom p) c) => NatDom (Cod p) a b -> NatCod (Cod p) (p c a) (p c b)
+rmap f =
+  (given (functor :: Obj (Dom p) c :- Obj (Cod p) (p c))
+   (map f))
+
+bimap :: Bifunctor p => Dom p a b -> NatDom (Cod p) c d -> NatCod (Cod p) (p a c) (p b d)
+bimap f g =
+  (given (target f)
+   (given (source g)
+    (lmap f >>> rmap g)))
